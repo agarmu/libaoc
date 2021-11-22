@@ -21,7 +21,7 @@ pub trait Day: std::fmt::Debug {
         println!("Day {}: Took {:?}", self.day_id(), total_time);
         println!("\tParsing took {:?}", parse_time);
         println!("\tPart 1: {}", p1);
-        println!("\t\took {:?}", p1_time);
+        println!("\t\ttook {:?}", p1_time);
         println!("\tPart 2: {}", p2);
         println!("\t\ttook {:?}", p2_time);
         Ok(())
@@ -42,14 +42,39 @@ impl AdventOfCode {
     {
         self.days.push(Box::new(day_fn()));
     }
-    pub fn run_all(&mut self) -> Result<(), Box<dyn Error>> {
+    pub fn run_all(&mut self) {
         for day in self.days.iter_mut() {
             let _ = day.run().map_err(|e| {
                 println!("Day {}: [ERROR]", day.day_id());
                 println!("\t{}", e);
             });
         }
-        Ok(())
+    }
+    pub fn run_from_args(&mut self) {
+        let mut args = std::env::args();
+        let _ = args.next();
+        if let Some(day_string) = args.next() {
+            if let Ok(day_id) = day_string.parse::<u32>() {
+                if let Some(day) = self.days.iter_mut().find(|d| d.day_id() == day_id) {
+                    let _ = day.run().map_err(|e| {
+                        println!("Day {}: [ERROR]", day.day_id());
+                        println!("\t{}", e);
+                    });
+                } else {
+                    println!("Day {}: [ERROR]", day_id);
+                    println!("\tDay not found");
+                }
+                return;
+            }
+            println!(
+                "[ERROR]: Day name {} was not recognized. Running all days.",
+                day_string
+            );
+        } else {
+            println!("No day specified. Running all days.");
+        }
+        // default behavior
+        self.run_all();
     }
 }
 
